@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.toBitmap
 import com.example.openstreetmap.databinding.ActivityMainBinding
 import com.example.openstreetmap.pojo.PointModel
 import kotlinx.coroutines.CoroutineScope
@@ -68,6 +69,12 @@ class MainActivity : AppCompatActivity() {
         locationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(this), binding.mapView)
         locationOverlay.enableMyLocation()
         locationOverlay.enableFollowLocation()
+
+        val imageDraw =
+            ContextCompat.getDrawable(this, R.drawable.baseline_my_location_24)?.toBitmap()
+        locationOverlay.setPersonIcon(imageDraw)
+        locationOverlay.setDirectionIcon(imageDraw)
+
         binding.mapView.overlays.add(locationOverlay)
     }
 
@@ -77,14 +84,14 @@ class MainActivity : AppCompatActivity() {
             if (isLocationButtonClicked) {
                 binding.btnLocation.setBackgroundColor(ContextCompat.getColor(this, R.color.pink))
                 initPointList()
-               // removeAllMarkers()
                 pointList.forEach {
                     setMarker(it.geoPoint, it.name)
                 }
             } else {
-                removeAllMarkers()
                 binding.btnLocation.setBackgroundColor(ContextCompat.getColor(this, R.color.gray))
+                removeAllMarkers()
             }
+            removeAllRouteOverlays()
             binding.mapView.overlays.add(locationOverlay)
             binding.mapView.invalidate()
         }
@@ -94,6 +101,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnRoute.setOnClickListener {
             isRouteButtonClicked = !isRouteButtonClicked
             if (isRouteButtonClicked) {
+                removeAllRouteOverlays()
                 binding.btnRoute.setBackgroundColor(
                     ContextCompat.getColor(
                         this,
@@ -101,22 +109,17 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
             } else {
+                binding.btnRoute.setBackgroundColor(ContextCompat.getColor(this, R.color.gray))
                 removeAllRouteOverlays()
-                binding.btnRoute.setBackgroundColor(
-                    ContextCompat.getColor(
-                        this,
-                        R.color.gray
-                    )
-                )
             }
         }
     }
 
     private fun removeAllRouteOverlays() {
-        val polylineOverlays = binding.mapView.overlays.filterIsInstance<Polyline>()
-        binding.mapView.overlays.removeAll(polylineOverlays)
+        binding.mapView.overlays.removeAll { it is Polyline }
         binding.mapView.invalidate()
     }
+
     private fun removeAllMarkers() {
         binding.mapView.overlays.removeAll { it is Marker }
         binding.mapView.invalidate()
@@ -128,7 +131,9 @@ class MainActivity : AppCompatActivity() {
             PointModel(id++, "м.Белорусская", GeoPoint(55.7894451, 37.5686849)),
             PointModel(id++, "Музей русского импрессионизма", GeoPoint(55.7824449, 37.56179)),
             PointModel(id++, "Фитнес-клуб FITLAND", GeoPoint(55.7836616, 37.5796178)),
-            PointModel(id++, "БЦ Ямское поле", GeoPoint(55.7827287, 37.5795343))
+            PointModel(id++, "БЦ Ямское поле", GeoPoint(55.7827287, 37.5795343)),
+            PointModel(id++, "Эколор", GeoPoint(55.7818875,37.5844531)),
+            PointModel(id++, "Пятёрочка", GeoPoint(55.7820843,37.5850369)),
         )
     }
 
@@ -155,25 +160,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun buildRoad(endPoint: GeoPoint) {
-        if (isRouteButtonClicked) {
-            isLocationButtonClicked = !isLocationButtonClicked
-            binding.btnRoute.setBackgroundColor(ContextCompat.getColor(this, R.color.pink))
-            CoroutineScope(Dispatchers.IO).launch {
-                val roadManager =
-                    OSRMRoadManager(this@MainActivity, System.getProperty("http.agent"))
-                val waypoints =
-                    arrayListOf<GeoPoint>(locationOverlay?.myLocation ?: startPoint, endPoint)
-                val road = roadManager.getRoad(waypoints)
-                val roadOverlay = RoadManager.buildRoadOverlay(road)
+        binding.btnRoute.setBackgroundColor(ContextCompat.getColor(this, R.color.pink))
+        CoroutineScope(Dispatchers.IO).launch {
+            val roadManager =
+                OSRMRoadManager(this@MainActivity, System.getProperty("http.agent"))
+            val waypoints =
+                arrayListOf<GeoPoint>(locationOverlay?.myLocation ?: startPoint, endPoint)
+            val road = roadManager.getRoad(waypoints)
+            val roadOverlay = RoadManager.buildRoadOverlay(road)
 
-                withContext(Dispatchers.Main) {
-                    binding.mapView.overlays.add(0, roadOverlay)
-                    binding.mapView.invalidate()
-                }
+            withContext(Dispatchers.Main) {
+                binding.mapView.overlays.add(0, roadOverlay)
+                binding.mapView.invalidate()
             }
-
-        } else {
-            binding.btnRoute.setBackgroundColor(ContextCompat.getColor(this, R.color.gray))
         }
     }
 }
