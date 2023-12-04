@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">OpenStreetMap</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="category">Категории</string>
+    <string name="details">Детали</string>
+    <string name="position">Позиции</string>
 </resources>

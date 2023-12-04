@@ -1,6 +1,9 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("androidx.navigation.safeargs.kotlin")
+    id("kotlin-kapt")
+    id("kotlin-parcelize")
 }
 
 android {
@@ -55,4 +58,8 @@ dependencies {
     //OSM
     implementation("org.osmdroid:osmdroid-android:6.1.17")
     implementation ("com.github.MKergall:osmbonuspack:6.9.0")
+
+    //Navigation component
+    implementation("androidx.navigation:navigation-fragment-ktx:2.6.0")
+    implementation("androidx.navigation:navigation-ui-ktx:2.6.0")
 }

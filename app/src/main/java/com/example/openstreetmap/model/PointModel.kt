@@ -1,7 +1,6 @@
-package com.example.openstreetmap.pojo
+package com.example.openstreetmap.model
 
 import org.osmdroid.util.GeoPoint
-
 
 data class PointModel(
     val id: Int,
